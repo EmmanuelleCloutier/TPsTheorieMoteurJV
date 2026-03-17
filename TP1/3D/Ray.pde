@@ -59,4 +59,28 @@ class Ray {
       line(pos.x, pos.y, closest.x, closest.y);
     }
   }
+  
+  void cast3D(int offsetX, int offsetY) {
+    
+    // Cone
+    stroke(255, 255, 0, 60);
+    float mx = offsetX + px / MINIMAP_S;
+    float my = offsetY + py / MINIMAP_S;
+    float coneLen = 30;
+    line(mx, my, mx + cos(pa - View/2) * coneLen, my + sin(pa - View/2) * coneLen);
+    line(mx, my, mx + cos(pa + View/2) * coneLen, my + sin(pa + View/2) * coneLen);
+    
+    // Rays
+    stroke(255, 100, 100, 150);strokeWeight(0.5);
+    for (int i = 0; i < NUM_RAYS; i++) {
+      float rayAngle = pa - View/2 + View * ((float)i / NUM_RAYS);
+      float rawDist = castRay(rayAngle);
+      
+      if (rawDist < 0) continue;
+      
+      float hitX = px + cos(rayAngle) * rawDist;
+      float hitY = py + sin(rayAngle) * rawDist;
+      line(mx, my, offsetX + hitX/MINIMAP_S, offsetY + hitY/MINIMAP_S);
+    }
+  }
 }
