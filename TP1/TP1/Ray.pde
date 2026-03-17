@@ -39,15 +39,15 @@ class Ray {
 
   void cast(ArrayList<Wall> walls) {
     PVector closest = null;
-    float record = Float.MAX_VALUE;
+    float recordValue = Float.MAX_VALUE;
     
     for (Wall w : walls) {
       PVector pt = intersect(w);
       
       if (pt != null) {
         float d = PVector.dist(pos, pt);
-        if (d < record) {
-          record = d;
+        if (d < recordValue) {
+          recordValue = d;
           closest = pt;
         }
       }
