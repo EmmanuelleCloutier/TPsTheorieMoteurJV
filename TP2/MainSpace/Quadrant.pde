@@ -3,7 +3,7 @@ class Quadrant
   PVector TopLeft;
   float Height;
   float Width;
-  //int MaxDepth = 4;
+  int MaxDepth = 10;
   int MaxParticles = 4;
   
   boolean HasChildren = false;
@@ -11,12 +11,13 @@ class Quadrant
   Quadrant[] Children = new Quadrant[4];
   ArrayList<Particule> Particules = new ArrayList<Particule>();
 
-  Quadrant(PVector TopLeft, float Width, float Height, int MaxParticles)
+  Quadrant(PVector TopLeft, float Width, float Height, int MaxParticles, int MaxDepth)
   {
     this.TopLeft = TopLeft;
     this.Height = Height;
     this.Width = Width;
     this.MaxParticles = MaxParticles;
+    this.MaxDepth = MaxDepth;
   }
 
   void render()
@@ -61,10 +62,14 @@ class Quadrant
     float halfWidth = Width / 2.0;
     float halfHeight = Height / 2.0;
     
+    if(Dept > MaxDepth){
+      return;
+    }
+    
     // Seul les feuilles ont besoins de créer des enfants
     if(HasChildren){
       for (Quadrant child : Children) {
-        child.GenerateTree(Dept);
+        child.GenerateTree(Dept++);
       }
       return;
     }
@@ -77,10 +82,10 @@ class Quadrant
       float y2 = TopLeft.y + halfHeight;
       
       HasChildren = true;
-      Children[0] = new Quadrant(new PVector(x1, y1), halfWidth, halfHeight, MaxParticles);
-      Children[1] = new Quadrant(new PVector(x1, y2), halfWidth, halfHeight, MaxParticles);
-      Children[2] = new Quadrant(new PVector(x2, y1), halfWidth, halfHeight, MaxParticles);
-      Children[3] = new Quadrant(new PVector(x2, y2), halfWidth, halfHeight, MaxParticles);
+      Children[0] = new Quadrant(new PVector(x1, y1), halfWidth, halfHeight, MaxParticles, MaxDepth);
+      Children[1] = new Quadrant(new PVector(x1, y2), halfWidth, halfHeight, MaxParticles, MaxDepth);
+      Children[2] = new Quadrant(new PVector(x2, y1), halfWidth, halfHeight, MaxParticles, MaxDepth);
+      Children[3] = new Quadrant(new PVector(x2, y2), halfWidth, halfHeight, MaxParticles, MaxDepth);
       
       for (Particule p : Particules) {
         RedistributeParticlesOnGenerate(p);
@@ -88,7 +93,7 @@ class Quadrant
       
       for (Quadrant child : Children) {
         child.render();
-        child.GenerateTree(Dept);
+        child.GenerateTree(Dept++);
       }
       
       Particules.clear();
