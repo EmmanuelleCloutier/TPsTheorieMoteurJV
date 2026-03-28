@@ -88,6 +88,7 @@ class Quadrant
       
       for (Quadrant child : Children) {
         child.render();
+        child.GenerateTree(Dept);
       }
       
       Particules.clear();
