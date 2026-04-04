@@ -3,7 +3,7 @@ class Quadrant
   PVector TopLeft;
   float Height;
   float Width;
-  int MaxDepth = 10;
+  int MaxDepth = 6;
   int MaxParticles = 4;
   int CurrentDepth = 0;
   color quadrantColor;
@@ -23,31 +23,31 @@ class Quadrant
     this.quadrantColor = color(random(50,255), random(50,255), random(50,255));
   }
 
-  void render()
+  void render() 
   {
-    // Couleur
-    fill(0, 0, 0);
-  
-    // Bordures
+    //dessine le rectangle du quadrant
+    noFill();
     stroke(255);
-    strokeWeight(2);
-    
-    // Quandrant
+    strokeWeight(1);
     rect(TopLeft.x, TopLeft.y, Width, Height);
-    
-    // Render Particles
-    for (Particule p : Particules)
-    {
-      p.render();
+  
+    if(HasChildren){
+      //si subdivise, il faut dessiner les enfants
+      for(Quadrant child : Children){
+        child.render();
+      }
+    } else {
+      //sinon dessigner les particules
+      for (Particule p : Particules){
+        p.render();
+      }
     }
   }
-  
+    
   int GetParticles() {
-  
-    // Top Left
+  //compte combien de particules sont dans les bounds
     float x1 = TopLeft.x;
     float y1 = TopLeft.y;
-    // Bottom Roght
     float x2 = x1 + Width;
     float y2 = y1 + Height;
      
@@ -61,47 +61,72 @@ class Quadrant
     return NbParticules;
   }
   
-  void GenerateTree(int Depth){
+void GenerateTree(){
+  
+  //stop si pronfondeur maxdepth
+  if (CurrentDepth >= MaxDepth) {
+    return;
+  }
+
+  //si deja subdivise, propager aux kids
+  if(HasChildren){
+    for (Quadrant child : Children) {
+      child.GenerateTree();
+    }
+    return;
+  }
+
+  //si trop de particules, subdivide
+  if(GetParticles() > MaxParticles){
+    
+    //calcul du centre
     float halfWidth = Width / 2.0;
     float halfHeight = Height / 2.0;
-    
-    // TODO: DEBUG
-    /*
-    if(Depth > MaxDepth){
-      return;
-    }*/
-    
-    // Seul les feuilles ont besoins de créer des enfants
-    if(HasChildren){
-      for (Quadrant child : Children) {
-        child.GenerateTree(Depth++);
-      }
-      return;
+
+    float x1 = TopLeft.x;
+    float y1 = TopLeft.y;
+    float x2 = x1 + halfWidth;
+    float y2 = y1 + halfHeight;
+
+    HasChildren = true;
+
+    //creation des 4 kids
+    Children[0] = new Quadrant(new PVector(x1, y1), halfWidth, halfHeight, MaxParticles, MaxDepth, CurrentDepth + 1);
+    Children[1] = new Quadrant(new PVector(x1, y2), halfWidth, halfHeight, MaxParticles, MaxDepth, CurrentDepth + 1);
+    Children[2] = new Quadrant(new PVector(x2, y1), halfWidth, halfHeight, MaxParticles, MaxDepth, CurrentDepth + 1);
+    Children[3] = new Quadrant(new PVector(x2, y2), halfWidth, halfHeight, MaxParticles, MaxDepth, CurrentDepth + 1);
+
+    //redistribue les particules dans les enfants
+    for (Particule p : Particules) {
+      RedistributeParticlesOnGenerate(p);
+    }
+
+    //continue recursivement
+    for (Quadrant child : Children) {
+      child.GenerateTree();
     }
     
-    // Si les feuilles ont besoin de diviser
-    if(GetParticles() > MaxParticles){
-      float x1 = TopLeft.x;
-      float y1 = TopLeft.y;
-      float x2 = TopLeft.x + halfWidth;
-      float y2 = TopLeft.y + halfHeight;
-      
-      HasChildren = true;
-      Children[0] = new Quadrant(new PVector(x1, y1), halfWidth, halfHeight, MaxParticles, MaxDepth, Depth);
-      Children[1] = new Quadrant(new PVector(x1, y2), halfWidth, halfHeight, MaxParticles, MaxDepth, Depth);
-      Children[2] = new Quadrant(new PVector(x2, y1), halfWidth, halfHeight, MaxParticles, MaxDepth, Depth);
-      Children[3] = new Quadrant(new PVector(x2, y2), halfWidth, halfHeight, MaxParticles, MaxDepth, Depth);
-      
-      for (Particule p : Particules) {
-        RedistributeParticlesOnGenerate(p);
+    //vide le parent
+    Particules.clear();
+  }
+}
+
+  int GetQuadrantIndex(float px, float py){
+    float midX = TopLeft.x + Width / 2.0;
+    float midY = TopLeft.y + Height / 2.0;
+  
+    if(px < midX){
+      if(py < midY){
+        return 0; // top left
+      } else {
+        return 1; // bottom left
       }
-      
-      for (Quadrant child : Children) {
-        child.render();
-        child.GenerateTree(Depth++);
+    } else {
+      if(py < midY){
+        return 2; // top right
+      } else {
+        return 3; // bottom right
       }
-      
-      Particules.clear();
     }
   }
   
@@ -109,66 +134,60 @@ class Quadrant
   
     if(!HasChildren){
       println("Error : Called RedistributeParticlesOnGenerate() on a Quadrnat with no children");
-     return;
+      return;
     }
-    else { // descend dans le quadrant correct
-      float halfWidth = Width / 2.0;
-      float halfHeight = Height / 2.0;
   
-      int index; // quel enfant
-      
-      if(p.x <= TopLeft.x + halfWidth){
-        if(p.y <= TopLeft.y + halfHeight){
-          index = 0; // quadrant 1
-        } else {
-          index = 1; // quadrant 2
-        }
-      } else {
-        if(p.y <= TopLeft.y + halfHeight){
-          index = 2; // quadrant 3
-        } else {
-          index = 3; // quadrant 4
-        }
-      }
-      println("Quadrant :" + (index + 1));
-      Children[index].Particules.add(p);
-      p.c = Children[index].quadrantColor;
-    }
+    int index = GetQuadrantIndex(p.x, p.y);
+  
+    //ajoute dans le bon enfant
+    Children[index].Particules.add(p);
+    
+    //change couleur 
+    p.c = Children[index].quadrantColor;
   }
   
-  /*
-  1 | 3
-  -----
-  2 | 4
-  */
-  void AddParticleOnClick(){
-    GetParticles();
+void Subdivide(){
+  //crée les enfants + redistrubue directement
   
-    if(!HasChildren){
-      Particules.add(new Particule(mouseX, mouseY, quadrantColor));
-      render();
-    }
-    else { // descend dans le quadrant correct
-      float halfWidth = Width / 2.0;
-      float halfHeight = Height / 2.0;
+  float halfWidth = Width / 2.0;
+  float halfHeight = Height / 2.0;
+
+  float x1 = TopLeft.x;
+  float y1 = TopLeft.y;
+  float x2 = x1 + halfWidth;
+  float y2 = y1 + halfHeight;
+
+  HasChildren = true;
+
+  Children[0] = new Quadrant(new PVector(x1, y1), halfWidth, halfHeight, MaxParticles, MaxDepth, CurrentDepth + 1);
+  Children[1] = new Quadrant(new PVector(x1, y2), halfWidth, halfHeight, MaxParticles, MaxDepth, CurrentDepth + 1);
+  Children[2] = new Quadrant(new PVector(x2, y1), halfWidth, halfHeight, MaxParticles, MaxDepth, CurrentDepth + 1);
+  Children[3] = new Quadrant(new PVector(x2, y2), halfWidth, halfHeight, MaxParticles, MaxDepth, CurrentDepth + 1);
+
   
-      int index; // quel enfant
-      
-      if(mouseX <= TopLeft.x + halfWidth){
-        if(mouseY <= TopLeft.y + halfHeight){
-          index = 0; // quadrant 1
-        } else {
-          index = 1; // quadrant 2
-        }
-      } else {
-        if(mouseY <= TopLeft.y + halfHeight){
-          index = 2; // quadrant 3
-        } else {
-          index = 3; // quadrant 4
-        }
-      }
+  for (Particule p : Particules){
+    int index = GetQuadrantIndex(p.x, p.y);
+    Children[index].Particules.add(p);
+  }
+
+Particules.clear();
+}
+
+void AddParticleOnClick(){
   
-      Children[index].AddParticleOnClick();
+  if(!HasChildren){
+    //ajoute dans ce noeud
+    Particules.add(new Particule(mouseX, mouseY, quadrantColor));
+
+    //si depasse capacité, subdivise
+    if(Particules.size() > MaxParticles && CurrentDepth < MaxDepth){
+      Subdivide();
     }
   }
+  else {
+    //sinon on drescend recursivmeent
+    int index = GetQuadrantIndex(mouseX, mouseY);
+    Children[index].AddParticleOnClick();
+  }
+}
 }

@@ -1,8 +1,12 @@
+//taille de la zone du quadtree
 int WindowWidth = 800;
 int WindowHeight = 600;
-int MaxParticles = 4;
-int MaxDepth = 4;
 
+//parametre du quadtree
+int MaxParticles = 4;
+int MaxDepth = 6;
+
+//racine 
 Quadrant QuadrantRacine;
 
 void settings()
@@ -13,12 +17,19 @@ void settings()
 
 void setup()
 {
+  //position du coin en haut gauche
   PVector QuadrantTopLeft = new PVector(0 + 10, 0 + 10);
+  //creation du quadtree racine
   QuadrantRacine = new Quadrant(QuadrantTopLeft, WindowWidth, WindowHeight, MaxParticles, MaxDepth, 1);
-  QuadrantRacine.render();
+  
 }
 
-void draw(){}
+void draw(){
+  background(0); 
+  
+  //dessine tout le quadtree recursif
+  QuadrantRacine.render();
+}
 
 void mouseClicked() {
   println("\n********************OnClicked********************");
@@ -28,6 +39,6 @@ void mouseClicked() {
   println("********************AddParticleOnClick() OVER********************");
   
   // Vérifie si la racine ou ses enfants doivent se subdiviser
-  QuadrantRacine.GenerateTree(1);
+  QuadrantRacine.GenerateTree();
   println("********************GenerateTree() OVER********************");
 }
