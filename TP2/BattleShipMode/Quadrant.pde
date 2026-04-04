@@ -98,10 +98,10 @@ class Quadrant {
   void Subdivide() {
     float halfW = Width/2, halfH = Height/2;
     HasChildren = true;
-    Children[0] = new Quadrant(new PVector(TopLeft.x, TopLeft.y), halfW, halfH, MaxParticles, MaxDepth, CurrentDepth+1);
-    Children[1] = new Quadrant(new PVector(TopLeft.x, TopLeft.y + halfH), halfW, halfH, MaxParticles, MaxDepth, CurrentDepth+1);
-    Children[2] = new Quadrant(new PVector(TopLeft.x + halfW, TopLeft.y), halfW, halfH, MaxParticles, MaxDepth, CurrentDepth+1);
-    Children[3] = new Quadrant(new PVector(TopLeft.x + halfW, TopLeft.y + halfH), halfW, halfH, MaxParticles, MaxDepth, CurrentDepth+1);
+    Children[0] = new Quadrant(new PVector(TopLeft.x, TopLeft.y), halfW, halfH, MaxParticles, MaxDepth, CurrentDepth+1); totalQuadrantsCreated++;
+    Children[1] = new Quadrant(new PVector(TopLeft.x, TopLeft.y + halfH), halfW, halfH, MaxParticles, MaxDepth, CurrentDepth+1); totalQuadrantsCreated++;
+    Children[2] = new Quadrant(new PVector(TopLeft.x + halfW, TopLeft.y), halfW, halfH, MaxParticles, MaxDepth, CurrentDepth+1); totalQuadrantsCreated++;
+    Children[3] = new Quadrant(new PVector(TopLeft.x + halfW, TopLeft.y + halfH), halfW, halfH, MaxParticles, MaxDepth, CurrentDepth+1); totalQuadrantsCreated++;
 
     for (Particule p : Particules) {
       int idx = GetQuadrantIndex(p.x, p.y);
@@ -124,6 +124,7 @@ class Quadrant {
       boolean hit = checkShipHit(mouseX, mouseY);
       if (hit && CurrentDepth>=4) for (Ship ship : ships) ship.checkHit(mouseX,mouseY);
       Particules.add(new Particule(mouseX, mouseY, hit ? color(255,0,0) : quadrantColor, 10));
+      totalParticlesCreated++; // incrémente le compteur
       if (Particules.size()>MaxParticles && CurrentDepth<MaxDepth) Subdivide();
     } else Children[GetQuadrantIndex(mouseX, mouseY)].AddParticleOnClick();
   }
@@ -150,4 +151,22 @@ void generateShips() {
       if (valid) { ships.add(ship); placed=true; }
     }
   }
+  
+}
+
+boolean allShipsDiscovered() {
+  for (Ship ship : ships) {
+    boolean allCellsCovered = true;
+    for (PVector cell : ship.cells) {
+      boolean hasParticle = false;
+      for (Particule p : QuadrantRacine.getAllParticles()) {
+        int gridX = int((p.x-10)/cellSize);
+        int gridY = int((p.y-10)/cellSize);
+        if (gridX == cell.x && gridY == cell.y) hasParticle = true;
+      }
+      if (!hasParticle) allCellsCovered = false;
+    }
+    if (!allCellsCovered) return false;
+  }
+  return true;
 }
