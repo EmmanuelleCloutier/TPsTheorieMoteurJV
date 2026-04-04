@@ -2,16 +2,18 @@ class Particule
 {
   float x, y;
   float diameter = 10;
+  color c;
 
-  Particule(float x, float y)
+  Particule(float x, float y, color c)
   {
     this.x = x;
     this.y = y;
+    this.c = c;
   }
 
   void render()
   {
-    fill(150, 0, 255);
+    fill(c);
     noStroke();
     circle(x, y, diameter);
   }

@@ -6,6 +6,7 @@ class Quadrant
   int MaxDepth = 10;
   int MaxParticles = 4;
   int CurrentDepth = 0;
+  color quadrantColor;
   
   boolean HasChildren = false;
   Quadrant[] Children = new Quadrant[4];
@@ -19,6 +20,7 @@ class Quadrant
     this.MaxParticles = MaxParticles;
     this.MaxDepth = MaxDepth;
     this.CurrentDepth = CurrentDepth;
+    this.quadrantColor = color(random(50,255), random(50,255), random(50,255));
   }
 
   void render()
@@ -130,6 +132,7 @@ class Quadrant
       }
       println("Quadrant :" + (index + 1));
       Children[index].Particules.add(p);
+      p.c = Children[index].quadrantColor;
     }
   }
   
@@ -142,7 +145,7 @@ class Quadrant
     GetParticles();
   
     if(!HasChildren){
-      Particules.add(new Particule(mouseX, mouseY));
+      Particules.add(new Particule(mouseX, mouseY, quadrantColor));
       render();
     }
     else { // descend dans le quadrant correct
