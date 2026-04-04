@@ -41,21 +41,6 @@ class Quadrant {
     noFill();
     rect(TopLeft.x, TopLeft.y, Width, Height);
 
-    for (Ship ship : ships) {
-      for (int i = 0; i < ship.cells.size(); i++) {
-        PVector cell = ship.cells.get(i);
-        float cellX = cell.x * cellSize + 10;
-        float cellY = cell.y * cellSize + 10;
-        if (cellX >= TopLeft.x && cellX < TopLeft.x + Width &&
-            cellY >= TopLeft.y && cellY < TopLeft.y + Height) {
-          if (i < ship.hits.size() && ship.hits.get(i)) fill(255,140,0,220);
-          else fill(0,0,255,150);
-          noStroke();
-          rect(cellX, cellY, cellSize, cellSize);
-        }
-      }
-    }
-
     if (HasChildren) for (Quadrant child : Children) child.render();
 
     noStroke();
