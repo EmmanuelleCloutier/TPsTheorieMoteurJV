@@ -167,6 +167,7 @@ void Subdivide(){
   
   for (Particule p : Particules){
     int index = GetQuadrantIndex(p.x, p.y);
+    p.c = Children[index].quadrantColor;
     Children[index].Particules.add(p);
   }
 
