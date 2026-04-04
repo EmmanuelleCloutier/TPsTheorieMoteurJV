@@ -1,18 +1,19 @@
-// ================== SHIP ==================
 class Ship {
   ArrayList<PVector> cells = new ArrayList<PVector>();
   ArrayList<Boolean> hits = new ArrayList<Boolean>();
 
-  Ship() {}
+  Ship() {} //constructeur vide pour initialiser un bateau 
 
 void render() {
-  ArrayList<Particule> allParticles = QuadrantRacine.getAllParticles();
-  boolean allCellsHaveParticles = true;
+  ArrayList<Particule> allParticles = QuadrantRacine.getAllParticles(); //récupère toutes les particules de l'arbre
+  boolean allCellsHaveParticles = true; //indique si toutes les cellules du bateau sont découvertes
   
-  // Vérifie si tout le bateau est découvert
+  //vérifie si toutes les cellules du bateau sont couverte par des particules 
   for (int i = 0; i < cells.size(); i++) {
     PVector cell = cells.get(i);
-    boolean hasParticle = false;
+    boolean hasParticle = false; //falg pour savoir si cete cellule est touchée
+    
+    //parcours toutes les particules
     for (Particule p : allParticles) {
       int gridX = int((p.x - 10)/cellSize);
       int gridY = int((p.y - 10)/cellSize);
@@ -24,11 +25,9 @@ void render() {
     if (!hasParticle) allCellsHaveParticles = false;
   }
 
-  // Dessine chaque cellule selon son état
+  //dessine chaque cellule du bateau selon son état
   for (int i = 0; i < cells.size(); i++) {
     PVector cell = cells.get(i);
-    //boolean isHit = hits.size() > i && hits.get(i);
-
     boolean hasParticle = false;
     for (Particule p : allParticles) {
       int gridX = int((p.x - 10)/cellSize);
@@ -39,23 +38,24 @@ void render() {
       }
     }
 
-    // couleur et contour seulement si touché ou découvert
-    if (allCellsHaveParticles) {
-      fill(0,255,0,200);     // vert si bateau entier découvert
+    //dessine la cellule selon sont état
+    if (allCellsHaveParticles) { //si tout le bateau est découvert = vert
+      fill(0,255,0,200);    
       stroke(255);
       strokeWeight(2);
       rect(cell.x*cellSize +10, cell.y*cellSize +10, cellSize, cellSize);
     } 
-    else if (hasParticle) {
-      fill(255,140,0,220);    // orange si touché
+    else if (hasParticle) { //si seulement cette cellule est touchée = orange
+      fill(255,140,0,220);   
       stroke(255);
       strokeWeight(2);
       rect(cell.x*cellSize +10, cell.y*cellSize +10, cellSize, cellSize);
     }
-    // sinon : rien n'est dessiné (pas de contour, pas de couleur)
+     //sinon rien n'est dessiné
   }
 }
 
+  //fonction pour enregistrer un coup sur le bateau 
   void checkHit(float px, float py) {
     int gridX = int((px - 10) / cellSize);
     int gridY = int((py - 10) / cellSize);
