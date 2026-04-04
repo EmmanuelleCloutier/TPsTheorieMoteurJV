@@ -1,44 +1,94 @@
-//taille de la zone du quadtree
+// ================== MAIN SPACE ==================
 int WindowWidth = 800;
 int WindowHeight = 600;
 
-//parametre du quadtree
+// paramètre du quadtree
 int MaxParticles = 4;
 int MaxDepth = 6;
 
-//racine 
+// taille des cellules pour les bateaux
+int cellSize = 40;
+
+// liste globale des bateaux
+ArrayList<Ship> ships = new ArrayList<Ship>();
+
 Quadrant QuadrantRacine;
 
-void settings()
-{
-    size(WindowWidth + 20, WindowHeight + 20);
-    
+void settings() {
+  size(WindowWidth + 20, WindowHeight + 20);
 }
 
-void setup()
-{
-  //position du coin en haut gauche
-  PVector QuadrantTopLeft = new PVector(0 + 10, 0 + 10);
-  //creation du quadtree racine
+void setup() {
+  PVector QuadrantTopLeft = new PVector(10, 10);
   QuadrantRacine = new Quadrant(QuadrantTopLeft, WindowWidth, WindowHeight, MaxParticles, MaxDepth, 1);
   
+  generateShips();
 }
 
-void draw(){
-  background(0); 
+void draw() {
+  background(0);
   
-  //dessine tout le quadtree recursif
+  // render quadtree et particules
   QuadrantRacine.render();
+
+  // render bateaux
+  for (Ship ship : ships) {
+    ship.render();
+  }
 }
 
 void mouseClicked() {
-  println("\n********************OnClicked********************");
-
-  // Ajoute la particule au bon quadrant feuille
+  // ajoute la particule au bon quadrant feuille
   QuadrantRacine.AddParticleOnClick();
-  println("********************AddParticleOnClick() OVER********************");
-  
-  // Vérifie si la racine ou ses enfants doivent se subdiviser
+  // subdivise si nécessaire
   QuadrantRacine.GenerateTree();
-  println("********************GenerateTree() OVER********************");
+}
+
+// ================== SHIP ==================
+class Ship {
+  ArrayList<PVector> cells = new ArrayList<PVector>();
+  ArrayList<Boolean> hits = new ArrayList<Boolean>();
+
+  Ship() {}
+
+  void render() {
+    noStroke();
+    for (int i = 0; i < cells.size(); i++) {
+      PVector cell = cells.get(i);
+      if (hits.size() > i && hits.get(i)) {
+        fill(0, 255, 0, 200); // vert si touché
+      } else {
+        fill(0, 0, 255, 150); // bleu sinon
+      }
+      rect(cell.x * cellSize + 10, cell.y * cellSize + 10, cellSize, cellSize);
+    }
+  }
+
+  void checkHit(float px, float py) {
+    int gridX = int((px - 10) / cellSize);
+    int gridY = int((py - 10) / cellSize);
+    for (int i = 0; i < cells.size(); i++) {
+      PVector cell = cells.get(i);
+      if (cell.x == gridX && cell.y == gridY) {
+        if (hits.size() <= i) hits.add(true);
+        else hits.set(i, true);
+      }
+    }
+  }
+
+  boolean isSunkByParticles(ArrayList<Particule> particules) {
+    for (PVector cell : cells) {
+      boolean covered = false;
+      for (Particule p : particules) {
+        int gridX = int((p.x - 10) / cellSize);
+        int gridY = int((p.y - 10) / cellSize);
+        if (gridX == cell.x && gridY == cell.y) {
+          covered = true;
+          break;
+        }
+      }
+      if (!covered) return false;
+    }
+    return true;
+  }
 }
