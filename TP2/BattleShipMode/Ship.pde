@@ -1,70 +1,56 @@
 class Ship {
+  // Liste des cellules du bateau (grid)
   ArrayList<PVector> cells = new ArrayList<PVector>();
-  ArrayList<Boolean> hits = new ArrayList<Boolean>();
 
-  Ship() {} //constructeur vide pour initialiser un bateau 
+  Ship() {}
 
-void render() {
-  ArrayList<Particule> allParticles = QuadrantRacine.getAllParticles(); //récupère toutes les particules de l'arbre
-  boolean allCellsHaveParticles = true; //indique si toutes les cellules du bateau sont découvertes
-  
-  //vérifie si toutes les cellules du bateau sont couverte par des particules 
-  for (int i = 0; i < cells.size(); i++) {
-    PVector cell = cells.get(i);
-    boolean hasParticle = false; //falg pour savoir si cete cellule est touchée
-    
-    //parcours toutes les particules
-    for (Particule p : allParticles) {
-      int gridX = int((p.x - 10)/cellSize);
-      int gridY = int((p.y - 10)/cellSize);
-      if (gridX == cell.x && gridY == cell.y) {
-        hasParticle = true;
-        break;
-      }
-    }
-    if (!hasParticle) allCellsHaveParticles = false;
+  // Vérifie si une cellule contient une particule (tir)
+  boolean hasParticleOnCell(PVector cell) {
+
+    // Convertit cellule → coordonnées écran
+    float px = cell.x * cellSize + 10;
+    float py = cell.y * cellSize + 10;
+
+    // Requête dans le quadtree (zone de la cellule)
+    ArrayList<Particule> particles =
+      QuadrantRacine.queryRange(px, py, cellSize, cellSize);
+
+    // Si au moins une particule → touché
+    return particles.size() > 0;
   }
 
-  //dessine chaque cellule du bateau selon son état
-  for (int i = 0; i < cells.size(); i++) {
-    PVector cell = cells.get(i);
-    boolean hasParticle = false;
-    for (Particule p : allParticles) {
-      int gridX = int((p.x - 10)/cellSize);
-      int gridY = int((p.y - 10)/cellSize);
-      if (gridX == cell.x && gridY == cell.y) {
-        hasParticle = true;
-        break;
-      }
+  // Vérifie si toutes les cellules du bateau sont touchées
+  boolean isFullyDiscovered() {
+    for (PVector cell : cells) {
+      if (!hasParticleOnCell(cell)) return false;
     }
-
-    //dessine la cellule selon sont état
-    if (allCellsHaveParticles) { //si tout le bateau est découvert = vert
-      fill(0,255,0,200);    
-      stroke(255);
-      strokeWeight(2);
-      rect(cell.x*cellSize +10, cell.y*cellSize +10, cellSize, cellSize);
-    } 
-    else if (hasParticle) { //si seulement cette cellule est touchée = orange
-      fill(255,140,0,220);   
-      stroke(255);
-      strokeWeight(2);
-      rect(cell.x*cellSize +10, cell.y*cellSize +10, cellSize, cellSize);
-    }
-     //sinon rien n'est dessiné
+    return true;
   }
-}
 
-  //fonction pour enregistrer un coup sur le bateau 
-  void checkHit(float px, float py) {
-    int gridX = int((px - 10) / cellSize);
-    int gridY = int((py - 10) / cellSize);
-    for (int i = 0; i < cells.size(); i++) {
-      PVector cell = cells.get(i);
-      if (cell.x == gridX && cell.y == gridY) {
-        if (hits.size() <= i) hits.add(true);
-        else hits.set(i, true);
+  void render() {
+
+    // Vérifie si le bateau entier est découvert
+    boolean allDiscovered = isFullyDiscovered();
+
+    for (PVector cell : cells) {
+
+      boolean hasParticle = hasParticleOnCell(cell);
+
+      if (allDiscovered) {
+        // Bateau entièrement trouvé
+        fill(0,255,0,200);
+        stroke(255);
+        strokeWeight(2);
+        rect(cell.x*cellSize +10, cell.y*cellSize +10, cellSize, cellSize);
       }
+      else if (hasParticle) {
+        // Cellule touchée seulement
+        fill(255,140,0,220);
+        stroke(255);
+        strokeWeight(2);
+        rect(cell.x*cellSize +10, cell.y*cellSize +10, cellSize, cellSize);
+      }
+      // Sinon rien (cellule cachée)
     }
   }
 }
