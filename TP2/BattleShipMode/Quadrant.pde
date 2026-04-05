@@ -75,14 +75,14 @@ class Quadrant {
     // Stop si profondeur max atteinte
     if (CurrentDepth >= MaxDepth) return;
 
-    // Si déjà subdivisé → continue récursivement
+    // Si déjà subdivisé, continue récursivement
     if (HasChildren) {
       for (Quadrant child : Children)
         child.GenerateTree();
       return;
     }
 
-    // Si trop de particules → subdivision
+    // Si trop de particules, subdivision
     if (GetParticles() > MaxParticles) {
 
       float halfW = Width/2;
@@ -188,13 +188,13 @@ class Quadrant {
   // Ajoute une particule à la position du clic
   void AddParticleOnClick() {
 
-    // Si pas subdivisé → on ajoute ici
+    // Si pas subdivisé, on ajoute ici
     if (!HasChildren) {
 
       Particules.add(new Particule(mouseX, mouseY, quadrantColor, 10));
       totalParticlesCreated++;
 
-      // Si trop de particules → subdivision
+      // Si trop de particules, subdivision
       if (Particules.size()>MaxParticles && CurrentDepth<MaxDepth)
         Subdivide();
 
@@ -203,4 +203,78 @@ class Quadrant {
       Children[GetQuadrantIndex(mouseX, mouseY)].AddParticleOnClick();
     }
   }
+}
+
+void generateShips() {
+
+  int[] sizes = {5,4,3,3,2}; // tailles des bateaux
+
+  int maxGridX = WindowWidth / cellSize;
+  int maxGridY = usableHeight / cellSize; 
+
+  // pour chaque bateau
+  for (int s : sizes) {
+
+    boolean placed = false;
+
+    // boucle jusqu'à placement valide
+    while (!placed) {
+
+      Ship ship = new Ship();
+
+      boolean horizontal = random(1) > 0.5;
+
+      int startX = int(random(maxGridX));
+      int startY = int(random(maxGridY));
+
+      // empêche le bateau de sortir de la grille
+      if (horizontal) {
+        if (startX + s > maxGridX) {
+          startX = maxGridX - s;
+        }
+      } else {
+        if (startY + s > maxGridY) {
+          startY = maxGridY - s;
+        }
+      }
+
+      boolean valid = true;
+
+      // création des cellules du bateau
+      for (int i = 0; i < s; i++) {
+
+        int x = startX + (horizontal ? i : 0);
+        int y = startY + (horizontal ? 0 : i);
+
+        // hors grille 
+        if (x >= maxGridX || y >= maxGridY) {
+          valid = false;
+        }
+
+        // collision avec autres bateaux
+        for (Ship other : ships) {
+          for (PVector p : other.cells) {
+            if (p.x == x && p.y == y) {
+              valid = false;
+            }
+          }
+        }
+
+        ship.cells.add(new PVector(x, y));
+      }
+
+      // si placement valide
+      if (valid) {
+        ships.add(ship);
+        placed = true;
+      }
+    }
+  }
+}
+
+boolean allShipsDiscovered() {
+  for (Ship ship : ships) {
+    if (!ship.isFullyDiscovered()) return false;
+  }
+  return true;
 }

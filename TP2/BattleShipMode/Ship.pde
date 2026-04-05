@@ -50,7 +50,7 @@ class Ship {
         strokeWeight(2);
         rect(cell.x*cellSize +10, cell.y*cellSize +10, cellSize, cellSize);
       }
-      // Sinon rien (cellule cachée)
+      // Sinon rien 
     }
   }
 }
